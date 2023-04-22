@@ -1,5 +1,6 @@
 package cn.anger.utils.sm;
 
+import cn.anger.utils.sm.encoder.ByteArrayUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -12,6 +13,8 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.SecureRandom;
 import java.security.Security;
+
+import static cn.anger.utils.sm.encoder.ByteArrayUtil.*;
 
 /**
  * @author : anger
@@ -67,13 +70,13 @@ public class SM4Util {
      * 加密
      * @param key 秘钥
      * @param plainText 明文
-     * @return 密文
+     * @return 十六进制密文
      */
     public static String encrypt(String key, String plainText) throws GeneralSecurityException {
-        byte[] keyData = key.getBytes(StandardCharsets.UTF_8);
+        byte[] keyData = ByteArrayUtil.hexStringToByteArray(key);
         byte[] srcData = plainText.getBytes(StandardCharsets.UTF_8);
         byte[] cipherArr = encryptEcbPadding(keyData, srcData);
-        return java.util.Arrays.toString(cipherArr);
+        return ByteArrayUtil.toHexString(cipherArr);
     }
 
     /**
@@ -95,8 +98,8 @@ public class SM4Util {
      */
     public static String decrypt(String key, String cipherText) throws GeneralSecurityException {
         String decryptStr;
-        byte[] keyData = key.getBytes(StandardCharsets.UTF_8);
-        byte[] cipherData = cipherText.getBytes(StandardCharsets.UTF_8);
+        byte[] keyData = Hex.decodeStrict(key);
+        byte[] cipherData = hexStringToByteArray(cipherText);
         byte[] srcData;
         srcData = decryptEcbPadding(keyData,cipherData);
         decryptStr = new String(srcData, StandardCharsets.UTF_8);
@@ -122,8 +125,8 @@ public class SM4Util {
      * @return 比较解密后的密文和明文是否一致
      */
     public static boolean verify(String key, String cipherText, String plainText) throws GeneralSecurityException {
-        byte[] keyData = key.getBytes(StandardCharsets.UTF_8);
-        byte[] cipherData = cipherText.getBytes(StandardCharsets.UTF_8);
+        byte[] keyData = Hex.decodeStrict(key);
+        byte[] cipherData = hexStringToByteArray(cipherText);
         byte[] decryptData = decryptEcbPadding(keyData, cipherData);
         byte[] srcData = plainText.getBytes(StandardCharsets.UTF_8);
         return Arrays.areEqual(decryptData, srcData);
