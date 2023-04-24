@@ -1,6 +1,5 @@
 package cn.anger.utils.sm;
 
-import cn.anger.utils.sm.encoder.ByteArrayUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -13,8 +12,6 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.SecureRandom;
 import java.security.Security;
-
-import static cn.anger.utils.sm.encoder.ByteArrayUtil.*;
 
 /**
  * @author : anger
@@ -48,7 +45,7 @@ public class SM4Util {
      * @return 秘钥字节码
      */
     public static byte[] generateKey(int keySize) throws GeneralSecurityException {
-        KeyGenerator generator = KeyGenerator.getInstance(ALGORITHM_NAME, BouncyCastleProvider.PROVIDER_NAME);
+        KeyGenerator generator = KeyGenerator.getInstance(ALGORITHM_NAME);
         generator.init(keySize, new SecureRandom());
         return generator.generateKey().getEncoded();
     }
@@ -60,7 +57,7 @@ public class SM4Util {
      * @return 暗号
      */
     private static Cipher generateEcbCipher(int mode, byte[] key) throws GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance(ALGORITHM_NAME_ECB_PADDING, BouncyCastleProvider.PROVIDER_NAME);
+        Cipher cipher = Cipher.getInstance(ALGORITHM_NAME_ECB_PADDING);
         Key sm4Key = new SecretKeySpec(key, ALGORITHM_NAME);
         cipher.init(mode, sm4Key);
         return cipher;
@@ -73,10 +70,10 @@ public class SM4Util {
      * @return 十六进制密文
      */
     public static String encrypt(String key, String plainText) throws GeneralSecurityException {
-        byte[] keyData = ByteArrayUtil.hexStringToByteArray(key);
+        byte[] keyData = Hex.decode(key);
         byte[] srcData = plainText.getBytes(StandardCharsets.UTF_8);
         byte[] cipherArr = encryptEcbPadding(keyData, srcData);
-        return ByteArrayUtil.toHexString(cipherArr);
+        return Hex.toHexString(cipherArr);
     }
 
     /**
@@ -99,7 +96,7 @@ public class SM4Util {
     public static String decrypt(String key, String cipherText) throws GeneralSecurityException {
         String decryptStr;
         byte[] keyData = Hex.decodeStrict(key);
-        byte[] cipherData = hexStringToByteArray(cipherText);
+        byte[] cipherData = Hex.decodeStrict(cipherText);
         byte[] srcData;
         srcData = decryptEcbPadding(keyData,cipherData);
         decryptStr = new String(srcData, StandardCharsets.UTF_8);
@@ -126,7 +123,7 @@ public class SM4Util {
      */
     public static boolean verify(String key, String cipherText, String plainText) throws GeneralSecurityException {
         byte[] keyData = Hex.decodeStrict(key);
-        byte[] cipherData = hexStringToByteArray(cipherText);
+        byte[] cipherData = Hex.decodeStrict(cipherText);
         byte[] decryptData = decryptEcbPadding(keyData, cipherData);
         byte[] srcData = plainText.getBytes(StandardCharsets.UTF_8);
         return Arrays.areEqual(decryptData, srcData);

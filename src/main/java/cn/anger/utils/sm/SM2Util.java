@@ -44,12 +44,14 @@ public class SM2Util {
 
         // 获取一条 sm2 曲线参数
         parameters = GMNamedCurves.getByName("sm2p256v1");
+
         // 构造 ecc 算法参数，曲线方程、椭圆曲线G点、大整数N
         domainParameters =
             new ECDomainParameters(
                 parameters.getCurve(),
                 parameters.getG(),
                 parameters.getN());
+
         parameterSpec =
             new ECParameterSpec(
                 parameters.getCurve(),
@@ -84,7 +86,7 @@ public class SM2Util {
 
         if (privateKeyHexString.length() == 66
             && "00".equals(privateKeyHexString.substring(0, 2)))
-                 privateKeyHexString = privateKeyHexString.substring(2);
+                privateKeyHexString = privateKeyHexString.substring(2);
 
         return privateKeyHexString;
     }
@@ -145,13 +147,13 @@ public class SM2Util {
      * @param privateKey 私钥
      * @return 签名后的数据
      */
-    public static String sign(String plainText, String privateKey) throws GeneralSecurityException {
+    public static String sign(String privateKey, String plainText) throws GeneralSecurityException {
         // 创建签名对象
         Signature signature =
-            Signature.getInstance(GMObjectIdentifiers.sm2sign_with_sm3.toString(), BouncyCastleProvider.PROVIDER_NAME);
+            Signature.getInstance(GMObjectIdentifiers.sm2sign_with_sm3.toString());
         BigInteger privateKeyD = new BigInteger(privateKey, 16);
         BCECPrivateKey key =
-            (BCECPrivateKey) KeyFactory.getInstance("EC", BouncyCastleProvider.PROVIDER_NAME)
+            (BCECPrivateKey) KeyFactory.getInstance("EC")
                                 .generatePrivate(new ECPrivateKeySpec(privateKeyD, parameterSpec));
         // 初始化签名状态
         signature.initSign(key);
@@ -168,13 +170,13 @@ public class SM2Util {
      * @param publicKey 公钥
      * @return 验签结果 true 成功 false 失败
      */
-    public static boolean verify(String plainText, String signedData, String publicKey)
+    public static boolean verify(String publicKey, String plainText, String signedData)
         throws GeneralSecurityException {
         Signature signature =
-            Signature.getInstance(GMObjectIdentifiers.sm2sign_with_sm3.toString(), BouncyCastleProvider.PROVIDER_NAME);
+            Signature.getInstance(GMObjectIdentifiers.sm2sign_with_sm3.toString());
         ECPoint ecPoint = parameters.getCurve().decodePoint(Hex.decode(publicKey));
         BCECPublicKey key =
-            (BCECPublicKey) KeyFactory.getInstance("EC", BouncyCastleProvider.PROVIDER_NAME)
+            (BCECPublicKey) KeyFactory.getInstance("EC")
                                 .generatePublic(new ECPublicKeySpec(ecPoint, parameterSpec));
         // 初始化为验签状态
         signature.initVerify(key);
@@ -190,7 +192,7 @@ public class SM2Util {
         X509Certificate certificate =
             (X509Certificate) factory.engineGenerateCertificate(new ByteArrayInputStream(Base64.decode(cert)));
 
-        Signature signature = Signature.getInstance(certificate.getSigAlgName(), BouncyCastleProvider.PROVIDER_NAME);
+        Signature signature = Signature.getInstance(certificate.getSigAlgName());
         signature.initVerify(certificate);
         signature.update(plainText.getBytes(StandardCharsets.UTF_8));
         return signature.verify(signValue);

@@ -1,6 +1,7 @@
 package cn.anger.utils.sm;
 
 import org.bouncycastle.crypto.digests.SM3Digest;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 
@@ -17,7 +18,7 @@ public class SM3Util {
      * @return 摘要信息
      */
     public static String hash(String data) {
-        return new String(byteHash(data.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
+        return Hex.toHexString(byteHash(data.getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
